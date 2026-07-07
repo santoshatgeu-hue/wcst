@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wisconsin Card Sorting Test</title>
+<style>
+  :root{
+    --ink:#0e141b;
+    --panel:#161e28;
+    --panel-2:#1d2733;
+    --line:#2a3644;
+    --text:#e6edf3;
+    --muted:#8595a4;
+    --card:#f6f4ee;
+    --card-edge:#d8d4c7;
+    --red:#d83a2c;
+    --green:#2ea24d;
+    --yellow:#e6b21e;
+    --blue:#2f6fd6;
+    --cyan:#37c9b8;
+    --cyan-dim:#1c5b55;
+    --err:#d83a2c;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #17222e 0%, var(--ink) 55%);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 64px}
+
+  /* ---- header ---- */
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
+    border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:28px;flex-wrap:wrap}
+  .title h1{font-size:20px;font-weight:650;letter-spacing:-0.01em;margin:0;line-height:1.1}
+  .title .sub{font-family:var(--mono);font-size:11px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.18em;margin-top:6px}
+  .status-pill{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;
+    color:var(--cyan);border:1px solid var(--cyan-dim);border-radius:999px;
+    padding:6px 12px;white-space:nowrap;text-transform:uppercase}
+
+  /* ---- key cards row ---- */
+  .section-label{font-family:var(--mono);font-size:10.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.2em;margin:0 0 12px}
+  .keys{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .card{
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:10px;
+    aspect-ratio:3/4;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 0 rgba(0,0,0,.4),0 8px 20px rgba(0,0,0,.25);
+    position:relative;
+    user-select:none;
+  }
+  .key-wrap{position:relative}
+  .key-wrap button.card{
+    width:100%;cursor:pointer;padding:0;transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .key-wrap button.card:hover:not(:disabled){transform:translateY(-4px);
+    box-shadow:0 1px 0 rgba(0,0,0,.4),0 14px 26px rgba(0,0,0,.35)}
+  .key-wrap button.card:disabled{cursor:default;opacity:.6}
+  .key-wrap button.card:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+  .keynum{position:absolute;top:8px;left:9px;font-family:var(--mono);font-size:11px;
+    color:#9a978c;font-weight:600}
+  .card.flash-ok{animation:okpulse .5s ease}
+  .card.flash-no{animation:nopulse .5s ease}
+  @keyframes okpulse{0%{box-shadow:0 0 0 0 rgba(55,201,184,.7)}100%{box-shadow:0 0 0 14px rgba(55,201,184,0)}}
+  @keyframes nopulse{0%{box-shadow:0 0 0 0 rgba(216,58,44,.7)}100%{box-shadow:0 0 0 14px rgba(216,58,44,0)}}
+
+  /* ---- stimulus card ---- */
+  .stage{margin:26px 0 8px;display:flex;flex-direction:column;align-items:center}
+  .connector{width:1px;height:26px;background:linear-gradient(var(--line),transparent)}
+  .stimulus{width:150px}
+  .feedback{height:26px;margin-top:14px;font-family:var(--mono);font-size:13px;
+    letter-spacing:0.14em;text-transform:uppercase;font-weight:600}
+  .feedback.ok{color:var(--cyan)}
+  .feedback.no{color:var(--err)}
+  .hint{color:var(--muted);font-size:13px;text-align:center;margin-top:2px;min-height:18px}
+
+  /* ---- svg symbols ---- */
+  .sym{display:grid;place-items:center;gap:9px;padding:14px}
+  .sym.n1{grid-template-columns:1fr}
+  .sym.n2{grid-template-columns:1fr 1fr}
+  .sym.n3{grid-template-columns:1fr 1fr;}
+  .sym.n3 svg:nth-child(3){grid-column:1/3;justify-self:center}
+  .sym.n4{grid-template-columns:1fr 1fr}
+  .sym svg{width:26px;height:26px;display:block}
+  .keys .sym svg{width:22px;height:22px}
+
+  /* ---- readout panel ---- */
+  .readout{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    margin-top:30px;overflow:hidden}
+  .readout .bar{display:flex;align-items:center;justify-content:space-between;
+    padding:11px 16px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+  .readout .bar span{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;
+    color:var(--muted);text-transform:uppercase}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+  .metric{background:var(--panel);padding:16px 16px 14px}
+  .metric .k{font-family:var(--mono);font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;line-height:1.3;min-height:26px}
+  .metric .v{font-family:var(--mono);font-size:26px;font-weight:600;line-height:1}
+  .metric .v small{font-size:13px;color:var(--muted);font-weight:400}
+  .v.accent{color:var(--cyan)}
+  .v.warn{color:var(--yellow)}
+
+  .progress{display:flex;gap:6px;padding:14px 16px;background:var(--panel);
+    border-top:1px solid var(--line);align-items:center;flex-wrap:wrap}
+  .progress .lab{font-family:var(--mono);font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.14em;margin-right:6px}
+  .pip{width:26px;height:6px;border-radius:3px;background:var(--line)}
+  .pip.done{background:var(--cyan)}
+  .streak{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .streak b{color:var(--text)}
+
+  /* ---- controls ---- */
+  .controls{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;align-items:center}
+  button.btn{font-family:var(--sans);font-size:13px;font-weight:550;
+    background:var(--panel-2);color:var(--text);border:1px solid var(--line);
+    border-radius:8px;padding:9px 16px;cursor:pointer;transition:border-color .12s,background .12s}
+  button.btn:hover{border-color:var(--cyan-dim);background:#232f3c}
+  button.btn:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  .note{color:var(--muted);font-size:12px;margin-left:auto;max-width:340px;text-align:right;line-height:1.5}
+
+  .done-banner{display:none;background:linear-gradient(90deg,var(--cyan-dim),transparent);
+    border:1px solid var(--cyan-dim);border-radius:10px;padding:14px 18px;margin-top:20px;
+    font-size:14px}
+  .done-banner b{color:var(--cyan)}
+
+  footer{margin-top:34px;color:var(--muted);font-size:11.5px;line-height:1.6;
+    border-top:1px solid var(--line);padding-top:16px}
+  footer b{color:#aab6c2;font-weight:600}
+
+  @media (max-width:560px){
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .keys{gap:8px}
+    .note{display:none}
+    .stimulus{width:130px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <h1>Wisconsin Card Sorting Test</h1>
+      <div class="sub">Set-shifting &middot; executive function</div>
+    </div>
+    <div class="status-pill" id="rulePill">Deduce the rule</div>
+  </header>
+
+  <p class="section-label">Key cards &mdash; match the test card to one of these</p>
+  <div class="keys" id="keyRow"></div>
+
+  <div class="stage">
+    <div class="connector"></div>
+    <p class="section-label" style="margin:0 0 10px">Test card</p>
+    <div class="card stimulus"><div class="sym" id="stimSym"></div></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="hint" id="hint">Click a key card (or press 1&ndash;4). The sorting rule is hidden &mdash; the only feedback is right or wrong.</div>
+  </div>
+
+  <div class="readout">
+    <div class="bar"><span>Session readout</span><span id="clock">TRIAL 000</span></div>
+    <div class="metrics">
+      <div class="metric"><div class="k">Trials<br>administered</div><div class="v" id="mTrials">0</div></div>
+      <div class="metric"><div class="k">Categories<br>completed</div><div class="v accent" id="mCats">0<small>/6</small></div></div>
+      <div class="metric"><div class="k">Perseverative<br>errors</div><div class="v warn" id="mPersev">0</div></div>
+      <div class="metric"><div class="k">Total<br>errors</div><div class="v" id="mErr">0</div></div>
+    </div>
+    <div class="progress">
+      <span class="lab">Categories</span>
+      <div class="pip" data-c="0"></div><div class="pip" data-c="1"></div>
+      <div class="pip" data-c="2"></div><div class="pip" data-c="3"></div>
+      <div class="pip" data-c="4"></div><div class="pip" data-c="5"></div>
+      <span class="streak">Correct streak: <b id="streak">0</b>/10</span>
+    </div>
+  </div>
+
+  <div class="done-banner" id="doneBanner"></div>
+
+  <div class="controls">
+    <button class="btn" id="restart">Restart session</button>
+    <button class="btn" id="reveal">Reveal current rule</button>
+    <div class="note">After 10 correct sorts in a row, the rule changes silently. Notice it stopped working &mdash; and switch.</div>
+  </div>
+
+  <footer>
+    <b>About the test.</b> Developed by Esta Berg &amp; David Grant (1948), the WCST measures cognitive flexibility and set-shifting, historically tied to prefrontal function. The clinically meaningful score is <b>perseverative errors</b> &mdash; continuing to sort by a rule that has stopped working.<br>
+    This is a functional educational recreation. Scoring here is a simplified version of the perseveration algorithm, not the full Heaton clinical scoring, and it is not a diagnostic instrument.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var COLORS = ["red","green","yellow","blue"];
+  var FORMS  = ["triangle","star","cross","circle"];
+  var NUMS   = [1,2,3,4];
+  var CVAR = {red:"var(--red)",green:"var(--green)",yellow:"var(--yellow)",blue:"var(--blue)"};
+
+  // Standard WCST key cards
+  var KEYS = [
+    {color:"red",    form:"triangle", num:1},
+    {color:"green",  form:"star",     num:2},
+    {color:"yellow", form:"cross",    num:3},
+    {color:"blue",   form:"circle",   num:4}
+  ];
+
+  // Rule cycle: color -> form -> number -> color ...  (10 correct advances)
+  var RULES = ["color","form","number"];
+  var RULE_LABEL = {color:"Color",form:"Shape",number:"Number"};
+  var TO_KEY_PROP = {color:"color",form:"form",number:"num"};
+
+  var TARGET_STREAK = 10;
+  var TARGET_CATS = 6;
+
+  // ---- SVG symbol builders ----
+  function svgFor(form, colorVar){
+    var s = 'fill="'+colorVar+'" stroke="rgba(0,0,0,.18)" stroke-width="1"';
+    switch(form){
+      case "triangle": return '<svg viewBox="0 0 40 40"><polygon points="20,4 37,36 3,36" '+s+'/></svg>';
+      case "circle":   return '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" '+s+'/></svg>';
+      case "cross":    return '<svg viewBox="0 0 40 40"><polygon points="15,3 25,3 25,15 37,15 37,25 25,25 25,37 15,37 15,25 3,25 3,15 15,15" '+s+'/></svg>';
+      case "star":     return '<svg viewBox="0 0 40 40"><polygon points="20,3 25,15 38,15 27,24 31,37 20,29 9,37 13,24 2,15 15,15" '+s+'/></svg>';
+    }
+    return "";
+  }
+  function renderCard(el, card){
+    var one = svgFor(card.form, CVAR[card.color]);
+    var html = "";
+    for(var i=0;i<card.num;i++) html += one;
+    el.className = "sym n"+card.num;
+    el.innerHTML = html;
+  }
+
+  // ---- Deck: each card's color/form/number point to three DIFFERENT keys ----
+  // (fully unambiguous: exactly one key matches on each dimension, all distinct)
+  function makeCard(){
+    var i = rand(4), j, k;
+    do { j = rand(4); } while(j===i);
+    do { k = rand(4); } while(k===i || k===j);
+    return { color: COLORS[i], form: FORMS[j], num: NUMS[k] };
+  }
+  function rand(n){ return Math.floor(Math.random()*n); }
+
+  // ---- State ----
+  var state;
+  function fresh(){
+    return {
+      trials:0, errors:0, persev:0, cats:0,
+      ruleIdx:0,            // index into RULES for current active rule
+      prevRuleIdx:null,     // the just-abandoned rule (perseverated-to principle)
+      streak:0,
+      current:null,
+      over:false
+    };
+  }
+
+  // ---- DOM ----
+  var keyRow = document.getElementById("keyRow");
+  var stimSym = document.getElementById("stimSym");
+  var feedbackEl = document.getElementById("feedback");
+  var hintEl = document.getElementById("hint");
+  var rulePill = document.getElementById("rulePill");
+  var elTrials=document.getElementById("mTrials"),
+      elCats=document.getElementById("mCats"),
+      elPersev=document.getElementById("mPersev"),
+      elErr=document.getElementById("mErr"),
+      elStreak=document.getElementById("streak"),
+      elClock=document.getElementById("clock"),
+      pips=document.querySelectorAll(".pip"),
+      doneBanner=document.getElementById("doneBanner"),
+      stimCard=document.querySelector(".stimulus");
+
+  var keyButtons=[];
+  function buildKeys(){
+    keyRow.innerHTML="";
+    keyButtons=[];
+    KEYS.forEach(function(k,idx){
+      var wrap=document.createElement("div"); wrap.className="key-wrap";
+      var btn=document.createElement("button");
+      btn.className="card";
+      btn.setAttribute("aria-label","Key card "+(idx+1)+": "+k.num+" "+k.color+" "+k.form+(k.num>1?"s":""));
+      var sym=document.createElement("div");
+      renderCard(sym,k);
+      btn.appendChild(sym);
+      var num=document.createElement("div"); num.className="keynum"; num.textContent=idx+1;
+      btn.appendChild(num);
+      btn.addEventListener("click",function(){ choose(idx,btn); });
+      wrap.appendChild(btn);
+      keyRow.appendChild(wrap);
+      keyButtons.push(btn);
+    });
+  }
+
+  function nextCard(){
+    state.current = makeCard();
+    renderCard(stimSym, state.current);
+  }
+
+  function activeRule(){ return RULES[state.ruleIdx]; }
+
+  function choose(keyIdx, btn){
+    if(state.over || !state.current) return;
+    var card = state.current;
+    var key = KEYS[keyIdx];
+    var rule = activeRule();
+    var prop = TO_KEY_PROP[rule];
+    var cardVal = rule==="number" ? card.num : card[rule];
+    var correct = (cardVal === key[prop]);
+
+    state.trials++;
+
+    if(correct){
+      state.streak++;
+      flash(btn,"flash-ok");
+      setFeedback("Correct","ok");
+    }else{
+      state.errors++;
+      state.streak=0;
+      // perseverative? did the chosen key match the previously-abandoned rule?
+      if(state.prevRuleIdx!==null){
+        var pRule=RULES[state.prevRuleIdx];
+        var pProp=TO_KEY_PROP[pRule];
+        var cVal = pRule==="number" ? card.num : card[pRule];
+        if(cVal === key[pProp]) state.persev++;
+      }
+      flash(btn,"flash-no");
+      setFeedback("Incorrect","no");
+    }
+
+    // category completion + silent rule switch
+    if(state.streak>=TARGET_STREAK){
+      state.cats++;
+      state.prevRuleIdx = state.ruleIdx;           // this rule becomes perseverated principle
+      state.ruleIdx = (state.ruleIdx+1)%RULES.length;
+      state.streak=0;
+      if(state.cats>=TARGET_CATS){ finish(); }
+    }
+
+    update();
+    if(!state.over) nextCard();
+  }
+
+  function flash(el,cls){
+    el.classList.remove("flash-ok","flash-no");
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+  var fbTimer;
+  function setFeedback(txt,cls){
+    feedbackEl.textContent=txt;
+    feedbackEl.className="feedback "+cls;
+    clearTimeout(fbTimer);
+    fbTimer=setTimeout(function(){ feedbackEl.textContent=""; feedbackEl.className="feedback"; },650);
+  }
+
+  function update(){
+    elTrials.textContent=state.trials;
+    elCats.innerHTML=state.cats+'<small>/6</small>';
+    elPersev.textContent=state.persev;
+    elErr.textContent=state.errors;
+    elStreak.textContent=state.streak;
+    elClock.textContent="TRIAL "+String(state.trials).padStart(3,"0");
+    pips.forEach(function(p,i){ p.classList.toggle("done", i<state.cats); });
+  }
+
+  function finish(){
+    state.over=true;
+    keyButtons.forEach(function(b){ b.disabled=true; });
+    stimSym.innerHTML="";
+    stimCard.style.opacity=".4";
+    rulePill.textContent="Session complete";
+    hintEl.textContent="";
+    var acc = state.trials ? Math.round((state.trials-state.errors)/state.trials*100) : 0;
+    doneBanner.style.display="block";
+    doneBanner.innerHTML="<b>All 6 categories completed.</b> "+
+      state.trials+" trials &middot; "+state.errors+" total errors &middot; "+
+      state.persev+" perseverative errors &middot; "+acc+"% accuracy. "+
+      "Fewer perseverative errors indicates smoother set-shifting.";
+  }
+
+  // reveal rule (learning aid — not part of a real administration)
+  document.getElementById("reveal").addEventListener("click",function(){
+    if(state.over) return;
+    rulePill.textContent="Rule: "+RULE_LABEL[activeRule()];
+    setTimeout(function(){ if(!state.over) rulePill.textContent="Deduce the rule"; },1800);
+  });
+
+  document.getElementById("restart").addEventListener("click",start);
+
+  document.addEventListener("keydown",function(e){
+    if(e.key>="1"&&e.key<="4"){
+      var i=parseInt(e.key,10)-1;
+      if(keyButtons[i] && !keyButtons[i].disabled) choose(i,keyButtons[i]);
+    }
+  });
+
+  function start(){
+    state=fresh();
+    buildKeys();
+    stimCard.style.opacity="1";
+    doneBanner.style.display="none";
+    rulePill.textContent="Deduce the rule";
+    hintEl.textContent="Click a key card (or press 1\u20134). The sorting rule is hidden \u2014 the only feedback is right or wrong.";
+    feedbackEl.textContent=""; feedbackEl.className="feedback";
+    nextCard();
+    update();
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
