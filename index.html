@@ -170,38 +170,6 @@
   .modal .macts .go{background:var(--amber);color:#1a1205;border-color:var(--amber)}
   .modal .macts .cancel{background:var(--panel-2);color:var(--text);border-color:var(--line)}
 
-  /* in-page user manual */
-  .manual-btn{margin-left:auto}
-  .manual-bg{display:none;position:fixed;inset:0;background:rgba(6,10,14,.74);
-    backdrop-filter:blur(3px);z-index:60;align-items:flex-start;justify-content:center;padding:40px 20px;overflow:auto}
-  .manual-bg.show{display:flex}
-  .manual{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cyan);
-    border-radius:14px;max-width:760px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.5);
-    max-height:calc(100vh - 80px);display:flex;flex-direction:column}
-  .manual-top{display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:16px 22px;border-bottom:1px solid var(--line);background:var(--panel-2);
-    border-radius:14px 14px 0 0;position:sticky;top:0}
-  .manual-top h2{margin:0;font-size:16px;font-weight:650}
-  .manual-close{background:transparent;border:1px solid var(--line);color:var(--muted);
-    border-radius:7px;width:32px;height:32px;cursor:pointer;font-size:16px;line-height:1}
-  .manual-close:hover{border-color:var(--cyan-dim);color:var(--text)}
-  .manual-body{padding:8px 26px 26px;overflow:auto}
-  .manual-body h3{font-size:14px;font-weight:650;color:var(--text);margin:22px 0 8px;
-    letter-spacing:-0.01em;border-bottom:1px solid var(--line);padding-bottom:6px}
-  .manual-body p{font-size:13.5px;line-height:1.6;color:var(--text);margin:0 0 10px}
-  .manual-body ul{margin:0 0 12px;padding-left:20px}
-  .manual-body li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:5px}
-  .manual-body b{color:#fff;font-weight:600}
-  .manual-body code{font-family:var(--mono);font-size:12px;background:var(--panel-2);
-    border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--cyan)}
-  .manual-body .scope{background:rgba(224,168,62,.08);border:1px solid var(--amber-dim);
-    border-radius:9px;padding:12px 14px;font-size:13px;color:#e9d9b8;line-height:1.55;margin:4px 0 14px}
-  .manual-body table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:12.5px}
-  .manual-body th{text-align:left;background:var(--panel-2);color:var(--muted);
-    padding:7px 10px;border:1px solid var(--line);font-weight:550}
-  .manual-body td{padding:7px 10px;border:1px solid var(--line);color:var(--text);line-height:1.45;vertical-align:top}
-  .manual-body td:first-child{font-family:var(--mono);white-space:nowrap;color:var(--cyan)}
-
   /* trial log */
   .log-wrap{border-top:1px solid var(--line);margin-top:4px}
   .log-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;flex-wrap:wrap;gap:10px}
@@ -265,7 +233,6 @@
       <button id="modeExam" role="tab" aria-selected="false">Examiner</button>
     </div>
     <span class="mnote" id="modeNote">Computer sets the rule, scores automatically, and shifts silently after 10 correct.</span>
-    <button class="btn manual-btn" id="manualBtn">&#9432; User manual</button>
   </div>
 
   <p class="section-label">Key cards &mdash; match the test card to one of these</p>
@@ -412,78 +379,6 @@
   </div>
 </div>
 
-<div class="manual-bg" id="manualModal">
-  <div class="manual" role="dialog" aria-modal="true" aria-labelledby="manualTitle">
-    <div class="manual-top">
-      <h2 id="manualTitle">Wisconsin Card Sorting Test &mdash; User Manual</h2>
-      <button class="manual-close" id="manualClose" aria-label="Close manual">&times;</button>
-    </div>
-    <div class="manual-body">
-      <p>A single-file web recreation of the WCST for <b>teaching, demonstration, and research prototyping</b>. It runs entirely in the browser &mdash; nothing to install, no internet needed.</p>
-      <div class="scope"><b>Scope.</b> Scoring is a simplified educational version, not the Heaton clinical algorithm, and the tool carries no clinical norms. Use it to illustrate the paradigm and collect practice data &mdash; not to make diagnostic judgements.</div>
-
-      <h3>Getting started</h3>
-      <ul>
-        <li>Open the file in any modern browser. It starts in <b>Auto</b> mode; use the <b>Auto / Examiner</b> toggle to switch modes.</li>
-        <li>To change the examiner password, edit the marked line near the top of the script (the value in quotes): <code>var EXAMINER_PASSWORD = "\u2026";</code></li>
-      </ul>
-
-      <h3>Auto mode (self-administered)</h3>
-      <ul>
-        <li>Match the <b>test card</b> to a <b>key card</b> by clicking it or pressing <b>1&ndash;4</b>.</li>
-        <li>The rule (colour, shape, or number) is hidden; the only feedback is <b>Correct</b> or <b>Incorrect</b>.</li>
-        <li>After <b>10 correct in a row</b>, the rule changes silently &mdash; notice it and switch. The session ends after <b>6 categories</b>.</li>
-        <li><b>Reveal current rule</b> is a teaching aid that briefly shows the active rule.</li>
-      </ul>
-
-      <h3>Examiner mode (manual administration)</h3>
-      <p>Reproduces the two-person clinical workflow. Opening the tab requires the password; it then stays unlocked for the browser session.</p>
-      <ul>
-        <li><b>Subject ID</b> and <b>Session start</b> are written into every export.</li>
-        <li><b>Enforced rule</b> is your answer key &mdash; set Colour / Shape / Number and change it whenever you shift. <b>Shift rule / new category</b> advances manually; <b>Auto-shift after 10 correct</b> advances automatically if ticked.</li>
-        <li><b>Correct match for this card</b> shows the right key under the current rule. <b>Hide answer from subject</b> blurs the rule and hint so you can turn the screen toward the participant.</li>
-        <li><b>Lock examiner</b> re-locks the console and returns to the subject-safe Auto view.</li>
-        <li><b>Delivering feedback:</b> the subject places a card (click or 1&ndash;4); you then click <b>&#10003; Correct</b> or <b>&#10007; Incorrect</b> (or press <b>C</b> / <b>X</b>) to score and record the trial.</li>
-      </ul>
-
-      <h3>Trial log &amp; exports (Examiner mode)</h3>
-      <ul>
-        <li><b>Download trial log</b> &mdash; per-trial CSV for one session, with a metadata header (subject ID, timestamps, mode, totals).</li>
-        <li><b>Clear log</b> empties the on-screen record.</li>
-      </ul>
-
-      <h3>Session summary report</h3>
-      <p>A live panel of the standard WCST-style indices:</p>
-      <table>
-        <tr><th>Index</th><th>Meaning</th></tr>
-        <tr><td>Perseverative errors</td><td>Errors matching the just-abandoned rule (the clinically key measure)</td></tr>
-        <tr><td>Non-persev. errors</td><td>Errors not attributable to perseveration</td></tr>
-        <tr><td>Conceptual-level resp.</td><td>Responses in runs of 3+ consecutive correct</td></tr>
-        <tr><td>Categories completed</td><td>Rules mastered, out of 6</td></tr>
-        <tr><td>Failure to maintain set</td><td>Error made after 5+ consecutive correct but before completing the category</td></tr>
-      </table>
-      <ul>
-        <li><b>Add session to batch</b> captures the current subject as one row; <b>Download summary CSV</b> writes one row per session for Excel/R; <b>Clear batch</b> empties the queue.</li>
-        <li>The batch is held in memory for the current browser session &mdash; <b>export before reloading or closing the tab.</b></li>
-      </ul>
-
-      <h3>Keyboard shortcuts</h3>
-      <table>
-        <tr><th>Key</th><th>Action</th></tr>
-        <tr><td>1&ndash;4</td><td>Place the test card on the matching key card</td></tr>
-        <tr><td>C</td><td>Deliver Correct (Examiner mode)</td></tr>
-        <tr><td>X or I</td><td>Deliver Incorrect (Examiner mode)</td></tr>
-      </table>
-
-      <h3>Notes &amp; limitations</h3>
-      <ul>
-        <li>The examiner password is a <b>client-side soft lock</b>: it stops the subject from casually opening the console, but anyone viewing the file's source can read it. Genuine access control needs a hosted backend.</li>
-        <li>Batch data isn't saved to disk automatically &mdash; use the export buttons.</li>
-        <li>The deck is generated so each test card matches exactly one key card per dimension, keeping scoring unambiguous &mdash; a simplification relative to the published test.</li>
-      </ul>
-    </div>
-  </div>
-</div>
 
 <script>
 (function(){
@@ -575,8 +470,7 @@
       pwModal=$("pwModal"), pwInput=$("pwInput"), pwErr=$("pwErr"),
       pwGo=$("pwGo"), pwCancel=$("pwCancel"),
       summaryGrid=$("summaryGrid"), batchNote=$("batchNote"),
-      addBatchBtn=$("addBatch"), summaryCsvBtn=$("summaryCsv"), clearBatchBtn=$("clearBatch"),
-      manualModal=$("manualModal"), manualBtn=$("manualBtn"), manualClose=$("manualClose");
+      addBatchBtn=$("addBatch"), summaryCsvBtn=$("summaryCsv"), clearBatchBtn=$("clearBatch");
 
   var batch=[];   // accumulated one-row-per-session summaries (in memory for this page session)
 
@@ -959,14 +853,7 @@
   summaryCsvBtn.addEventListener("click",downloadSummaryCSV);
   clearBatchBtn.addEventListener("click",function(){ batch=[]; renderBatchNote(); });
 
-  function openManual(){ manualModal.classList.add("show"); }
-  function closeManual(){ manualModal.classList.remove("show"); }
-  manualBtn.addEventListener("click",openManual);
-  manualClose.addEventListener("click",closeManual);
-  manualModal.addEventListener("click",function(e){ if(e.target===manualModal)closeManual(); });
-
   document.addEventListener("keydown",function(e){
-    if(manualModal.classList.contains("show")){ if(e.key==="Escape")closeManual(); return; }
     var tag=(e.target&&e.target.tagName)||"";
     if(tag==="INPUT"||tag==="TEXTAREA"||pwModal.classList.contains("show")) return;
     if(e.key>="1"&&e.key<="4"){
